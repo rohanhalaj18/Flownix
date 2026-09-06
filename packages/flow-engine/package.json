@@ -1,8 +1,9 @@
 {
   "name": "@flownix/engine",
-  "version": "0.1.0",
-  "description": "Standalone lightweight flowchart parser, layout engine, and SVG renderer",
+  "version": "1.0.0",
+  "description": "Standalone lightweight flowchart parser, layout engine, and SVG renderer inspired by Mermaid DSL",
   "main": "src/index.js",
+  "module": "src/index.js",
   "type": "module",
   "exports": {
     ".": "./src/index.js"
@@ -10,13 +11,19 @@
   "scripts": {
     "test": "node --test"
   },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rohanhalaj18/Flownix.git"
+  },
   "keywords": [
-    "diagram",
+    "flownix",
     "flowchart",
+    "diagram",
     "parser",
+    "layout",
     "svg",
-    "layout"
+    "mermaid"
   ],
-  "author": "Rohan",
+  "author": "Rohan <https://github.com/rohanhalaj18>",
   "license": "MIT"
 }

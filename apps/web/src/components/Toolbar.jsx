@@ -1,6 +1,5 @@
 import React from 'react';
 import { ExportMenu } from './ExportMenu';
-import { setAuthToken } from '../services/apiClient';
 
 const PRESETS = {
   auth: `flowchart TD
@@ -42,7 +41,7 @@ export function Toolbar({
       <div className="brand">
         <div className="brand-logo">F</div>
         <span className="brand-title">Flownix</span>
-        <span className="badge">Milestone 5</span>
+        <span className="badge">v1.0.0</span>
       </div>
 
       <div className="actions">
