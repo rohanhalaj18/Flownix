@@ -13,7 +13,9 @@ export const themes = {
     labelBg: '#334155',
     decisionBg: '#1e1b4b',
     decisionBorder: '#818cf8',
-    arrowColor: '#38bdf8'
+    arrowColor: '#38bdf8',
+    selectedBorder: '#38bdf8',
+    selectedGlow: '0 0 12px rgba(56, 189, 248, 0.8)'
   },
   light: {
     bg: '#ffffff',
@@ -24,18 +26,21 @@ export const themes = {
     labelBg: '#e2e8f0',
     decisionBg: '#e0e7ff',
     decisionBorder: '#4f46e5',
-    arrowColor: '#0284c7'
+    arrowColor: '#0284c7',
+    selectedBorder: '#0284c7',
+    selectedGlow: '0 0 12px rgba(2, 132, 199, 0.8)'
   }
 };
 
 export function renderSVG(layoutResult, options = {}) {
   const themeName = options.theme || 'dark';
   const theme = typeof themeName === 'string' ? (themes[themeName] || themes.dark) : themeName;
+  const selectedNodeId = options.selectedNodeId || null;
   const bounds = layoutResult.bounds || { width: 600, height: 400 };
 
   const markerId = `arrowhead-${Math.random().toString(36).substring(2, 7)}`;
 
-  let svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${bounds.width} ${bounds.height}" width="100%" height="100%" style="background-color: ${theme.bg}; font-family: system-ui, -apple-system, sans-serif;">\n`;
+  let svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${bounds.width} ${bounds.height}" width="100%" height="100%" style="background-color: ${theme.bg}; font-family: system-ui, -apple-system, sans-serif; user-select: none;">\n`;
   
   // Defs & Arrowhead Markers
   svg += `  <defs>\n`;
@@ -65,23 +70,28 @@ export function renderSVG(layoutResult, options = {}) {
   svg += `  <g class="nodes">\n`;
   (layoutResult.nodes || []).forEach(node => {
     const { x, y, width, height, label, type, id } = node;
+    const isSelected = selectedNodeId === id;
 
-    svg += `    <g class="node node-${type}" id="node-${id}" transform="translate(${x}, ${y})">\n`;
+    const strokeWidth = isSelected ? '4' : '2.5';
+    const strokeColor = isSelected ? theme.selectedBorder : (type === 'decision' ? theme.decisionBorder : theme.nodeBorder);
+    const cursorStyle = 'cursor: pointer;';
+
+    svg += `    <g class="node node-${type}${isSelected ? ' selected' : ''}" id="node-${id}" data-node-id="${id}" transform="translate(${x}, ${y})" style="${cursorStyle}">\n`;
 
     if (type === 'decision') {
       const points = `${width / 2},0 ${width},${height / 2} ${width / 2},${height} 0,${height / 2}`;
-      svg += `      <polygon points="${points}" fill="${theme.decisionBg}" stroke="${theme.decisionBorder}" stroke-width="2.5" />\n`;
+      svg += `      <polygon points="${points}" fill="${theme.decisionBg}" stroke="${strokeColor}" stroke-width="${strokeWidth}" />\n`;
     } else if (type === 'circle') {
       const r = Math.min(width, height) / 2;
-      svg += `      <circle cx="${width / 2}" cy="${height / 2}" r="${r}" fill="${theme.nodeBg}" stroke="${theme.nodeBorder}" stroke-width="2.5" />\n`;
+      svg += `      <circle cx="${width / 2}" cy="${height / 2}" r="${r}" fill="${theme.nodeBg}" stroke="${strokeColor}" stroke-width="${strokeWidth}" />\n`;
     } else if (type === 'rounded') {
-      svg += `      <rect x="0" y="0" width="${width}" height="${height}" rx="20" ry="20" fill="${theme.nodeBg}" stroke="${theme.nodeBorder}" stroke-width="2.5" />\n`;
+      svg += `      <rect x="0" y="0" width="${width}" height="${height}" rx="20" ry="20" fill="${theme.nodeBg}" stroke="${strokeColor}" stroke-width="${strokeWidth}" />\n`;
     } else {
       // Rectangle (default)
-      svg += `      <rect x="0" y="0" width="${width}" height="${height}" rx="8" ry="8" fill="${theme.nodeBg}" stroke="${theme.nodeBorder}" stroke-width="2.5" />\n`;
+      svg += `      <rect x="0" y="0" width="${width}" height="${height}" rx="8" ry="8" fill="${theme.nodeBg}" stroke="${strokeColor}" stroke-width="${strokeWidth}" />\n`;
     }
 
-    svg += `      <text x="${width / 2}" y="${height / 2 + 1}" text-anchor="middle" dominant-baseline="middle" fill="${theme.textColor}" font-size="14" font-weight="600">${escapeHTML(label)}</text>\n`;
+    svg += `      <text x="${width / 2}" y="${height / 2 + 1}" text-anchor="middle" dominant-baseline="middle" fill="${theme.textColor}" font-size="14" font-weight="600" pointer-events="none">${escapeHTML(label)}</text>\n`;
     svg += `    </g>\n`;
   });
   svg += `  </g>\n`;

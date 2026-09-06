@@ -14,23 +14,27 @@ C -->|No| E(Show Error)`;
 export function App() {
   const [code, setCode] = useState(DEFAULT_DSL);
   const [theme, setTheme] = useState('dark');
-  const [diagramResult, setDiagramResult] = useState(() => createDiagram(DEFAULT_DSL, { theme: 'dark' }));
+  const [selectedNodeId, setSelectedNodeId] = useState(null);
+  const [diagramResult, setDiagramResult] = useState(() => 
+    createDiagram(DEFAULT_DSL, { theme: 'dark', selectedNodeId: null })
+  );
 
   useEffect(() => {
     const handler = setTimeout(() => {
       try {
-        const result = createDiagram(code, { theme });
+        const result = createDiagram(code, { theme, selectedNodeId });
         setDiagramResult(result);
       } catch (err) {
         setDiagramResult({
           errors: [{ message: `Engine runtime error: ${err.message}` }],
-          svg: null
+          svg: null,
+          layout: null
         });
       }
-    }, 200);
+    }, 150);
 
     return () => clearTimeout(handler);
-  }, [code, theme]);
+  }, [code, theme, selectedNodeId]);
 
   const toggleTheme = () => {
     const newTheme = theme === 'dark' ? 'light' : 'dark';
@@ -43,18 +47,26 @@ export function App() {
       <Toolbar
         theme={theme}
         onToggleTheme={toggleTheme}
-        onSelectPreset={(presetCode) => setCode(presetCode)}
+        onSelectPreset={(presetCode) => {
+          setCode(presetCode);
+          setSelectedNodeId(null);
+        }}
         hasError={diagramResult.errors && diagramResult.errors.length > 0}
       />
 
       <div className="main-container">
         <Editor
           value={code}
-          onChange={setCode}
+          onChange={(newCode) => {
+            setCode(newCode);
+          }}
           errors={diagramResult.errors}
         />
         <DiagramCanvas
           svgContent={diagramResult.svg}
+          layoutBounds={diagramResult.layout?.bounds}
+          selectedNodeId={selectedNodeId}
+          onSelectNode={setSelectedNodeId}
         />
       </div>
     </div>
