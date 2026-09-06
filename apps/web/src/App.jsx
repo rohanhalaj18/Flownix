@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { createDiagram } from '@flownix/engine';
-import { Toolbar } from './components/Toolbar';
+import { Navbar } from './components/Navbar';
 import { Editor } from './components/Editor';
 import { DiagramCanvas } from './components/DiagramCanvas';
+import { LandingPage } from './components/LandingPage';
 import { AuthModal } from './components/AuthModal';
 import { SaveModal } from './components/SaveModal';
 import { DashboardModal } from './components/DashboardModal';
@@ -17,6 +18,7 @@ C -->|Yes| D[Dashboard]
 C -->|No| E(Show Error)`;
 
 export function App() {
+  const [viewMode, setViewMode] = useState('landing'); // 'landing' | 'studio'
   const [code, setCode] = useState(DEFAULT_DSL);
   const [theme, setTheme] = useState('dark');
   const [selectedNodeId, setSelectedNodeId] = useState(null);
@@ -59,6 +61,7 @@ export function App() {
             setCode(res.diagram.sourceCode);
             setCurrentDiagram(res.diagram);
             setActiveShareId(res.diagram.shareId);
+            setViewMode('studio');
           }
         })
         .catch((err) => {
@@ -97,16 +100,20 @@ export function App() {
     setCurrentDiagram(null);
   };
 
+  const handlePresetSelect = (presetCode) => {
+    setCode(presetCode);
+    setSelectedNodeId(null);
+    setCurrentDiagram(null);
+    setViewMode('studio');
+  };
+
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
-      <Toolbar
+    <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+      <Navbar
         theme={theme}
         onToggleTheme={toggleTheme}
-        onSelectPreset={(presetCode) => {
-          setCode(presetCode);
-          setSelectedNodeId(null);
-          setCurrentDiagram(null);
-        }}
+        viewMode={viewMode}
+        onToggleViewMode={setViewMode}
         svgContent={diagramResult.svg}
         user={user}
         onOpenAuth={() => setAuthOpen(true)}
@@ -137,21 +144,29 @@ export function App() {
         onLogout={handleLogout}
       />
 
-      <div className="main-container">
-        <Editor
-          value={code}
-          onChange={(newCode) => {
-            setCode(newCode);
-          }}
-          errors={diagramResult.errors}
+      {viewMode === 'landing' ? (
+        <LandingPage
+          theme={theme}
+          onOpenStudio={() => setViewMode('studio')}
+          onSelectPreset={handlePresetSelect}
         />
-        <DiagramCanvas
-          svgContent={diagramResult.svg}
-          layoutBounds={diagramResult.layout?.bounds}
-          selectedNodeId={selectedNodeId}
-          onSelectNode={setSelectedNodeId}
-        />
-      </div>
+      ) : (
+        <div className="main-container">
+          <Editor
+            value={code}
+            onChange={(newCode) => {
+              setCode(newCode);
+            }}
+            errors={diagramResult.errors}
+          />
+          <DiagramCanvas
+            svgContent={diagramResult.svg}
+            layoutBounds={diagramResult.layout?.bounds}
+            selectedNodeId={selectedNodeId}
+            onSelectNode={setSelectedNodeId}
+          />
+        </div>
+      )}
 
       {/* Modals */}
       <AuthModal
@@ -179,6 +194,7 @@ export function App() {
           setCode(diagram.sourceCode);
           setCurrentDiagram(diagram);
           setActiveShareId(diagram.shareId);
+          setViewMode('studio');
         }}
         onOpenShare={(shareId) => {
           setActiveShareId(shareId);
