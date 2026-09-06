@@ -6,14 +6,16 @@ import { DiagramCanvas } from './components/DiagramCanvas';
 
 const DEFAULT_DSL = `flowchart TD
 
-A[Start] --> B[End]`;
+A((Start)) --> B[Login]
+B --> C{Valid Credentials?}
+C -->|Yes| D[Dashboard]
+C -->|No| E(Show Error)`;
 
 export function App() {
   const [code, setCode] = useState(DEFAULT_DSL);
   const [theme, setTheme] = useState('dark');
   const [diagramResult, setDiagramResult] = useState(() => createDiagram(DEFAULT_DSL, { theme: 'dark' }));
 
-  // Debounce diagram updates by ~200ms
   useEffect(() => {
     const handler = setTimeout(() => {
       try {

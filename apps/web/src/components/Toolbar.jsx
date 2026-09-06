@@ -1,20 +1,57 @@
 import React from 'react';
 
+const PRESETS = {
+  auth: `flowchart TD
+
+A((Start)) --> B[Login]
+B --> C{Valid Credentials?}
+C -->|Yes| D[Dashboard]
+C -->|No| E(Show Error)`,
+
+  horizontal: `flowchart LR
+
+A[User Request] --> B{Cache Hit?}
+B -->|Yes| C[Return Cached Data]
+B -->|No| D[Query Database]
+D --> E[Update Cache]
+E --> C`,
+
+  shapes: `flowchart TD
+
+A((Circle Node)) --> B[Rectangle Node]
+B --> C(Rounded Rectangle)
+C --> D{Decision Diamond?}`
+};
+
 export function Toolbar({ theme, onToggleTheme, onSelectPreset, hasError }) {
   return (
     <header className="toolbar">
       <div className="brand">
         <div className="brand-logo">F</div>
         <span className="brand-title">Flownix</span>
-        <span className="badge">Milestone 1</span>
+        <span className="badge">Milestone 2</span>
       </div>
 
       <div className="actions">
         <button
           className="btn"
-          onClick={() => onSelectPreset('A[Start] --> B[End]')}
+          onClick={() => onSelectPreset(PRESETS.auth)}
         >
-          Preset: Basic Rect
+          Preset: Auth Flow
+        </button>
+
+        <button
+          className="btn"
+          onClick={() => onSelectPreset(PRESETS.horizontal)}
+        >
+          Preset: Horizontal (LR)
+        </button>
+
+        <button
+          className="btn"
+          onClick={() => onSelectPreset(PRESETS.shapes)}
+        >
+          Preset: Shapes Showcase
         </button>
 
         <button className="btn" onClick={onToggleTheme}>
