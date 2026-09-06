@@ -1,5 +1,6 @@
 import React from 'react';
 import { ExportMenu } from './ExportMenu';
+import { setAuthToken } from '../services/apiClient';
 
 const PRESETS = {
   auth: `flowchart TD
@@ -24,51 +25,70 @@ B --> C(Rounded Rectangle)
 C --> D{Decision Diamond?}`
 };
 
-export function Toolbar({ theme, onToggleTheme, onSelectPreset, svgContent }) {
+export function Toolbar({
+  theme,
+  onToggleTheme,
+  onSelectPreset,
+  svgContent,
+  user,
+  onOpenAuth,
+  onOpenSave,
+  onOpenDashboard,
+  onOpenShare,
+  onLogout
+}) {
   return (
     <header className="toolbar">
       <div className="brand">
         <div className="brand-logo">F</div>
         <span className="brand-title">Flownix</span>
-        <span className="badge">Milestone 4</span>
+        <span className="badge">Milestone 5</span>
       </div>
 
       <div className="actions">
-        <button
-          className="btn"
-          onClick={() => onSelectPreset(PRESETS.auth)}
-        >
-          Preset: Auth Flow
+        <button className="btn" onClick={() => onSelectPreset(PRESETS.auth)}>
+          Auth Preset
         </button>
 
-        <button
-          className="btn"
-          onClick={() => onSelectPreset(PRESETS.horizontal)}
-        >
-          Preset: Horizontal (LR)
-        </button>
-
-        <button
-          className="btn"
-          onClick={() => onSelectPreset(PRESETS.shapes)}
-        >
-          Preset: Shapes Showcase
+        <button className="btn" onClick={() => onSelectPreset(PRESETS.horizontal)}>
+          Horizontal
         </button>
 
         <button className="btn" onClick={onToggleTheme}>
-          Theme: {theme === 'dark' ? '🌙 Dark' : '☀️ Light'}
+          {theme === 'dark' ? '🌙 Dark' : '☀️ Light'}
         </button>
 
         <ExportMenu svgContent={svgContent} filename="flownix-diagram" />
 
-        <a
-          className="btn btn-primary"
-          href="https://github.com/rohanhalaj18/Flownix"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          GitHub Repository
-        </a>
+        {user ? (
+          <>
+            <button className="btn" onClick={onOpenSave}>
+              💾 Save
+            </button>
+            <button className="btn" onClick={onOpenDashboard}>
+              📂 My Diagrams
+            </button>
+            <button className="btn" onClick={onOpenShare}>
+              🔗 Share
+            </button>
+
+            <span style={{ fontSize: '0.8rem', color: 'var(--accent-color)', fontWeight: '600', padding: '0 4px' }}>
+              👤 {user.username}
+            </span>
+
+            <button
+              className="btn"
+              style={{ fontSize: '0.75rem' }}
+              onClick={onLogout}
+            >
+              Sign Out
+            </button>
+          </>
+        ) : (
+          <button className="btn btn-primary" onClick={onOpenAuth}>
+            🔐 Sign In / Register
+          </button>
+        )}
       </div>
     </header>
   );
