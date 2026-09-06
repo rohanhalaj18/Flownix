@@ -6,7 +6,7 @@
 export function calculateLayout(graph, options = {}) {
   const direction = (graph.direction || 'TD').toUpperCase();
   const config = {
-    horizontalGap: options.horizontalGap || 60,
+    horizontalGap: options.horizontalGap || 70,
     verticalGap: options.verticalGap || 80,
     padding: options.padding || 60,
     minNodeWidth: 120,
@@ -25,19 +25,18 @@ export function calculateLayout(graph, options = {}) {
     };
   }
 
-  // Map for quick node lookup
+  // Map for quick node lookup & dimension estimation
   const nodeMap = new Map();
   nodes.forEach(n => {
-    // Estimate node dimensions based on label and shape
     const labelLen = (n.label || n.id).length;
-    let width = Math.max(config.minNodeWidth, labelLen * 10 + 30);
+    let width = Math.max(config.minNodeWidth, labelLen * 10 + 32);
     let height = config.minNodeHeight;
 
     if (n.type === 'decision') {
-      width = Math.max(140, labelLen * 12 + 40);
-      height = 70;
+      width = Math.max(140, labelLen * 12 + 48);
+      height = 74;
     } else if (n.type === 'circle') {
-      const size = Math.max(80, labelLen * 10 + 20);
+      const size = Math.max(84, labelLen * 10 + 24);
       width = size;
       height = size;
     } else if (n.type === 'rounded') {
@@ -51,7 +50,7 @@ export function calculateLayout(graph, options = {}) {
     nodeMap.set(n.id, n);
   });
 
-  // Calculate indegrees and adjacency for level calculation
+  // Indegree and topological depth calculation
   const inDegree = new Map();
   const childrenMap = new Map();
   const parentsMap = new Map();
@@ -70,10 +69,9 @@ export function calculateLayout(graph, options = {}) {
     }
   });
 
-  // Assign layers (Topological Rank)
+  // Assign layers
   const queue = nodes.filter(n => inDegree.get(n.id) === 0);
   if (queue.length === 0 && nodes.length > 0) {
-    // Cyclic graph fallback: pick first node
     queue.push(nodes[0]);
   }
 
@@ -110,29 +108,22 @@ export function calculateLayout(graph, options = {}) {
   });
 
   const levels = Array.from(layersMap.keys()).sort((a, b) => a - b);
+  const maxLevel = levels.length > 0 ? Math.max(...levels) : 0;
 
-  // Position nodes depending on direction (TD, LR, BT, RL)
   const isVertical = direction === 'TD' || direction === 'TB' || direction === 'BT';
   const isReversed = direction === 'BT' || direction === 'RL';
 
-  // Calculate coordinates
+  // Compute positions
   let currentLevelOffset = config.padding;
 
   levels.forEach(lvl => {
+    const actualLevelIndex = isReversed ? (maxLevel - lvl) : lvl;
     const layerNodes = layersMap.get(lvl);
-    
-    // Find max node cross-dimension in this layer
+
     let maxCrossDim = 0;
     layerNodes.forEach(n => {
       const crossDim = isVertical ? n.height : n.width;
       if (crossDim > maxCrossDim) maxCrossDim = crossDim;
-    });
-
-    // Compute span along current layer (horizontal for TD, vertical for LR)
-    let totalSpan = 0;
-    layerNodes.forEach((n, idx) => {
-      const dim = isVertical ? n.width : n.height;
-      totalSpan += dim + (idx < layerNodes.length - 1 ? config.horizontalGap : 0);
     });
 
     let currentSpanOffset = config.padding;
@@ -140,10 +131,10 @@ export function calculateLayout(graph, options = {}) {
     layerNodes.forEach(n => {
       if (isVertical) {
         n.x = currentSpanOffset;
-        n.y = isReversed ? 1000 - currentLevelOffset : currentLevelOffset;
+        n.y = currentLevelOffset;
         currentSpanOffset += n.width + config.horizontalGap;
       } else {
-        n.x = isReversed ? 1000 - currentLevelOffset : currentLevelOffset;
+        n.x = currentLevelOffset;
         n.y = currentSpanOffset;
         currentSpanOffset += n.height + config.verticalGap;
       }
@@ -185,7 +176,6 @@ export function calculateLayout(graph, options = {}) {
       y2 = toNode.y + toNode.height;
     }
 
-    // Bezier control points for smooth path
     let path = '';
     if (isVertical) {
       const deltaY = Math.abs(y2 - y1) / 2;
@@ -199,7 +189,6 @@ export function calculateLayout(graph, options = {}) {
       path = `M ${x1} ${y1} C ${cx1} ${y1}, ${cx2} ${y2}, ${x2} ${y2}`;
     }
 
-    // Label anchor position (midpoint)
     const lx = (x1 + x2) / 2;
     const ly = (y1 + y2) / 2;
 

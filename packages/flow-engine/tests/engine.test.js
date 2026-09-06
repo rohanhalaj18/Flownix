@@ -30,6 +30,36 @@ test('Parser parses basic rectangle flow diagram syntax', () => {
   assert.equal(parsed.edges[0].to, 'B');
 });
 
+test('Parser parses decision diamonds, circle, rounded nodes and edge labels', () => {
+  const input = `flowchart LR
+  A((Start)) --> B[Login]
+  B --> C{Valid?}
+  C -->|Yes| D[Dashboard]
+  C -->|No| E(Error)`;
+
+  const parsed = parse(input);
+  assert.equal(parsed.direction, 'LR');
+  assert.equal(parsed.nodes.length, 5);
+
+  const nodeA = parsed.nodes.find(n => n.id === 'A');
+  assert.equal(nodeA.type, 'circle');
+  assert.equal(nodeA.label, 'Start');
+
+  const nodeC = parsed.nodes.find(n => n.id === 'C');
+  assert.equal(nodeC.type, 'decision');
+  assert.equal(nodeC.label, 'Valid?');
+
+  const nodeE = parsed.nodes.find(n => n.id === 'E');
+  assert.equal(nodeE.type, 'rounded');
+  assert.equal(nodeE.label, 'Error');
+
+  const edgeYes = parsed.edges.find(e => e.from === 'C' && e.to === 'D');
+  assert.equal(edgeYes.label, 'Yes');
+
+  const edgeNo = parsed.edges.find(e => e.from === 'C' && e.to === 'E');
+  assert.equal(edgeNo.label, 'No');
+});
+
 test('Parser reports syntax error for invalid arrow', () => {
   const input = `A[Start] ---> B[End]`;
   const parsed = parse(input);
@@ -37,11 +67,16 @@ test('Parser reports syntax error for invalid arrow', () => {
   assert.match(parsed.errors[0].message, /Unexpected token "--->"/);
 });
 
-test('createDiagram generates full layout and SVG output', () => {
-  const result = createDiagram('A[Start] --> B[End]');
+test('createDiagram generates full layout and SVG with custom shapes and labels', () => {
+  const input = `flowchart TD
+  A[Start] --> B{Valid?}
+  B -->|Yes| C((Success))`;
+
+  const result = createDiagram(input, { theme: 'dark' });
   assert.equal(result.errors.length, 0);
   assert.ok(result.layout);
   assert.ok(result.svg.includes('<svg'));
-  assert.ok(result.svg.includes('Start'));
-  assert.ok(result.svg.includes('End'));
+  assert.ok(result.svg.includes('polygon')); // decision diamond
+  assert.ok(result.svg.includes('circle'));  // circle node
+  assert.ok(result.svg.includes('Yes'));     // edge label
 });

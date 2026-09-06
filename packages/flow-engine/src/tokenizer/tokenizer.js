@@ -7,12 +7,12 @@ export const TokenType = {
   HEADER: 'HEADER',
   DIRECTION: 'DIRECTION',
   IDENTIFIER: 'IDENTIFIER',
-  LABEL_RECT: 'LABEL_RECT',      // [Text]
+  LABEL_RECT: 'LABEL_RECT',         // [Text]
   LABEL_DECISION: 'LABEL_DECISION', // {Text}
-  LABEL_CIRCLE: 'LABEL_CIRCLE',   // ((Text))
-  LABEL_ROUNDED: 'LABEL_ROUNDED',  // (Text)
-  ARROW: 'ARROW',                // -->
-  LABEL_PIPE: 'LABEL_PIPE',      // |Label|
+  LABEL_CIRCLE: 'LABEL_CIRCLE',     // ((Text))
+  LABEL_ROUNDED: 'LABEL_ROUNDED',   // (Text)
+  ARROW: 'ARROW',                   // -->
+  LABEL_PIPE: 'LABEL_PIPE',         // |Label|
   NEWLINE: 'NEWLINE',
   EOF: 'EOF'
 };
@@ -52,7 +52,7 @@ export class Tokenizer {
       const startCol = this.col;
       const ch = this.peek();
 
-      // Skip whitespace except newlines
+      // Skip spaces and tabs
       if (ch === ' ' || ch === '\t' || ch === '\r') {
         this.read();
         continue;
@@ -107,8 +107,7 @@ export class Tokenizer {
         continue;
       }
 
-      // Handle Node Shapes & Labels
-      // Circle ((Text))
+      // Handle Circle ((Text))
       if (ch === '(' && this.peek(1) === '(') {
         this.read(); this.read();
         let content = '';
@@ -122,7 +121,7 @@ export class Tokenizer {
         continue;
       }
 
-      // Rounded rectangle (Text)
+      // Handle Rounded rectangle (Text)
       if (ch === '(') {
         this.read();
         let content = '';
@@ -136,7 +135,7 @@ export class Tokenizer {
         continue;
       }
 
-      // Rectangle [Text]
+      // Handle Rectangle [Text]
       if (ch === '[') {
         this.read();
         let content = '';
@@ -150,7 +149,7 @@ export class Tokenizer {
         continue;
       }
 
-      // Decision diamond {Text}
+      // Handle Decision diamond {Text}
       if (ch === '{') {
         this.read();
         let content = '';
@@ -164,7 +163,7 @@ export class Tokenizer {
         continue;
       }
 
-      // Identifiers & Keywords (flowchart, TD, A, B, etc.)
+      // Identifiers & Keywords
       if (/[a-zA-Z0-9_-]/.test(ch)) {
         let value = '';
         while (this.peek() !== null && /[a-zA-Z0-9_-]/.test(this.peek())) {
@@ -182,7 +181,7 @@ export class Tokenizer {
         continue;
       }
 
-      // Unrecognized character fallback
+      // Fallback
       const unknownChar = this.read();
       tokens.push({ type: TokenType.IDENTIFIER, value: unknownChar, line: startLine, col: startCol });
     }
