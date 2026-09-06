@@ -9,6 +9,7 @@
   ],
   "scripts": {
     "dev": "npm run dev --workspace=apps/web",
+    "api": "npm run start --workspace=apps/api",
     "build": "npm run build --workspaces --if-present",
     "test": "npm run test --workspace=packages/flow-engine"
   },

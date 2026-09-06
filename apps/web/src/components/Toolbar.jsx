@@ -1,4 +1,5 @@
 import React from 'react';
+import { ExportMenu } from './ExportMenu';
 
 const PRESETS = {
   auth: `flowchart TD
@@ -23,13 +24,13 @@ B --> C(Rounded Rectangle)
 C --> D{Decision Diamond?}`
 };
 
-export function Toolbar({ theme, onToggleTheme, onSelectPreset, hasError }) {
+export function Toolbar({ theme, onToggleTheme, onSelectPreset, svgContent }) {
   return (
     <header className="toolbar">
       <div className="brand">
         <div className="brand-logo">F</div>
         <span className="brand-title">Flownix</span>
-        <span className="badge">Milestone 3</span>
+        <span className="badge">Milestone 4</span>
       </div>
 
       <div className="actions">
@@ -57,6 +58,8 @@ export function Toolbar({ theme, onToggleTheme, onSelectPreset, hasError }) {
         <button className="btn" onClick={onToggleTheme}>
           Theme: {theme === 'dark' ? '🌙 Dark' : '☀️ Light'}
         </button>
+
+        <ExportMenu svgContent={svgContent} filename="flownix-diagram" />
 
         <a
           className="btn btn-primary"
