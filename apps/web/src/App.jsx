@@ -51,6 +51,7 @@ export function App() {
           setCode(presetCode);
           setSelectedNodeId(null);
         }}
+        svgContent={diagramResult.svg}
         hasError={diagramResult.errors && diagramResult.errors.length > 0}
       />
 
