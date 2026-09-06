@@ -1,0 +1,22 @@
+{
+  "name": "@flownix/engine",
+  "version": "0.1.0",
+  "description": "Standalone lightweight flowchart parser, layout engine, and SVG renderer",
+  "main": "src/index.js",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.js"
+  },
+  "scripts": {
+    "test": "node --test"
+  },
+  "keywords": [
+    "diagram",
+    "flowchart",
+    "parser",
+    "svg",
+    "layout"
+  ],
+  "author": "Rohan",
+  "license": "MIT"
+}
