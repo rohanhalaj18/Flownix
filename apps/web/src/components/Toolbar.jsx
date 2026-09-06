@@ -29,7 +29,7 @@ export function Toolbar({ theme, onToggleTheme, onSelectPreset, hasError }) {
       <div className="brand">
         <div className="brand-logo">F</div>
         <span className="brand-title">Flownix</span>
-        <span className="badge">Milestone 2</span>
+        <span className="badge">Milestone 3</span>
       </div>
 
       <div className="actions">
