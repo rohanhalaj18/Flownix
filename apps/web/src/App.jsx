@@ -3,6 +3,11 @@ import { createDiagram } from '@flownix/engine';
 import { Toolbar } from './components/Toolbar';
 import { Editor } from './components/Editor';
 import { DiagramCanvas } from './components/DiagramCanvas';
+import { AuthModal } from './components/AuthModal';
+import { SaveModal } from './components/SaveModal';
+import { DashboardModal } from './components/DashboardModal';
+import { ShareModal } from './components/ShareModal';
+import { authAPI, diagramAPI, setAuthToken } from './services/apiClient';
 
 const DEFAULT_DSL = `flowchart TD
 
@@ -19,6 +24,50 @@ export function App() {
     createDiagram(DEFAULT_DSL, { theme: 'dark', selectedNodeId: null })
   );
 
+  // Auth & Diagram State
+  const [user, setUser] = useState(null);
+  const [currentDiagram, setCurrentDiagram] = useState(null);
+
+  // Modals state
+  const [authOpen, setAuthOpen] = useState(false);
+  const [saveOpen, setSaveOpen] = useState(false);
+  const [dashboardOpen, setDashboardOpen] = useState(false);
+  const [shareOpen, setShareOpen] = useState(false);
+  const [activeShareId, setActiveShareId] = useState(null);
+
+  // Check initial user authentication session
+  useEffect(() => {
+    authAPI
+      .getMe()
+      .then((res) => {
+        if (res.user) setUser(res.user);
+      })
+      .catch(() => {
+        setAuthToken(null);
+      });
+  }, []);
+
+  // Check shared URL hashtag: #share=shareId
+  useEffect(() => {
+    const hash = window.location.hash;
+    if (hash.startsWith('#share=')) {
+      const shareId = hash.replace('#share=', '');
+      diagramAPI
+        .getShared(shareId)
+        .then((res) => {
+          if (res.diagram && res.diagram.sourceCode) {
+            setCode(res.diagram.sourceCode);
+            setCurrentDiagram(res.diagram);
+            setActiveShareId(res.diagram.shareId);
+          }
+        })
+        .catch((err) => {
+          console.warn('Could not load shared diagram:', err.message);
+        });
+    }
+  }, []);
+
+  // Debounced parsing
   useEffect(() => {
     const handler = setTimeout(() => {
       try {
@@ -42,6 +91,12 @@ export function App() {
     document.documentElement.setAttribute('data-theme', newTheme);
   };
 
+  const handleLogout = () => {
+    setAuthToken(null);
+    setUser(null);
+    setCurrentDiagram(null);
+  };
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
       <Toolbar
@@ -50,9 +105,36 @@ export function App() {
         onSelectPreset={(presetCode) => {
           setCode(presetCode);
           setSelectedNodeId(null);
+          setCurrentDiagram(null);
         }}
         svgContent={diagramResult.svg}
-        hasError={diagramResult.errors && diagramResult.errors.length > 0}
+        user={user}
+        onOpenAuth={() => setAuthOpen(true)}
+        onOpenSave={() => {
+          if (!user) {
+            setAuthOpen(true);
+          } else {
+            setSaveOpen(true);
+          }
+        }}
+        onOpenDashboard={() => {
+          if (!user) {
+            setAuthOpen(true);
+          } else {
+            setDashboardOpen(true);
+          }
+        }}
+        onOpenShare={() => {
+          if (currentDiagram?.shareId) {
+            setActiveShareId(currentDiagram.shareId);
+            setShareOpen(true);
+          } else if (user) {
+            setSaveOpen(true);
+          } else {
+            setAuthOpen(true);
+          }
+        }}
+        onLogout={handleLogout}
       />
 
       <div className="main-container">
@@ -70,6 +152,45 @@ export function App() {
           onSelectNode={setSelectedNodeId}
         />
       </div>
+
+      {/* Modals */}
+      <AuthModal
+        isOpen={authOpen}
+        onClose={() => setAuthOpen(false)}
+        onAuthSuccess={(authenticatedUser) => setUser(authenticatedUser)}
+      />
+
+      <SaveModal
+        isOpen={saveOpen}
+        onClose={() => setSaveOpen(false)}
+        sourceCode={code}
+        currentDiagram={currentDiagram}
+        onSaveSuccess={(savedDiagram) => {
+          setCurrentDiagram(savedDiagram);
+          setActiveShareId(savedDiagram.shareId);
+          setShareOpen(true);
+        }}
+      />
+
+      <DashboardModal
+        isOpen={dashboardOpen}
+        onClose={() => setDashboardOpen(false)}
+        onLoadDiagram={(diagram) => {
+          setCode(diagram.sourceCode);
+          setCurrentDiagram(diagram);
+          setActiveShareId(diagram.shareId);
+        }}
+        onOpenShare={(shareId) => {
+          setActiveShareId(shareId);
+          setShareOpen(true);
+        }}
+      />
+
+      <ShareModal
+        isOpen={shareOpen}
+        onClose={() => setShareOpen(false)}
+        shareId={activeShareId}
+      />
     </div>
   );
 }
